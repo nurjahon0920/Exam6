@@ -2,27 +2,22 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-const Admin = () => {
-  const [products, setProducts] = useState([]);
+const Admin = ({ handleEdit, editProductId, productData }) => {
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [brand, setBrand] = useState("");
   const [price, setPrice] = useState("");
   const [priceInSale, setPriceInSale] = useState("");
-  const [editProductId, setEditProductId] = useState(null);
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const fetchProducts = async () => {
-    try {
-      const response = await axios.get("http://localhost:3000/products");
-      setProducts(response.data);
-    } catch (error) {
-      console.error("Error fetching products:", error);
+    if (editProductId) {
+      setName(productData.name);
+      setCode(productData.code);
+      setBrand(productData.brand);
+      setPrice(productData.price);
+      setPriceInSale(productData.priceInSale);
     }
-  };
+  }, [editProductId, productData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,36 +34,17 @@ const Admin = () => {
           `http://localhost:3000/products/${editProductId}`,
           newProduct
         );
-        setEditProductId(null);
+        handleEdit(null);
       } else {
         await axios.post("http://localhost:3000/products", newProduct);
       }
-      fetchProducts();
       setName("");
       setCode("");
       setBrand("");
       setPrice("");
       setPriceInSale("");
     } catch (error) {
-      console.error("Error saving product:", error);
-    }
-  };
-
-  const handleEdit = (product) => {
-    setEditProductId(product.id);
-    setName(product.name);
-    setCode(product.code);
-    setBrand(product.brand);
-    setPrice(product.price);
-    setPriceInSale(product.priceInSale);
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      await axios.delete(`http://localhost:3000/products/${id}`);
-      fetchProducts();
-    } catch (error) {
-      console.error("Error deleting product:", error);
+      console.log("Error saving product:", error);
     }
   };
 
@@ -171,6 +147,7 @@ const Admin = () => {
           <div className="btns flex gap-2 justify-center">
             <button
               type="submit"
+              onClick={location.reload}
               className="submit bg-[#1BC58D] text-white px-5 py-[10px] my-5 rounded-md font-bold">
               {editProductId ? "изменить" : "Сохранить"}
             </button>

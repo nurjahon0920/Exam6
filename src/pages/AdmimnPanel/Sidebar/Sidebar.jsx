@@ -1,20 +1,23 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, CSSProperties } from "react";
 import { Link } from "react-router-dom";
+import Modal from "react-modal";
 import Delete from "/delete.svg";
 import Edit from "/Edit.svg";
 import Search from "/search.svg";
+import Admin from "../Admin/Admin";
+import { ClipLoader } from "react-spinners";
+
+Modal.setAppElement("#root");
 
 const Sidebar = () => {
   const [products, setProducts] = useState([]);
   const [searchProducts, setSearchProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [name, setName] = useState("");
-  const [code, setCode] = useState("");
-  const [brand, setBrand] = useState("");
-  const [price, setPrice] = useState("");
-  const [priceInSale, setPriceInSale] = useState("");
+  const [loading, setLoading] = useState(true);
   const [editProductId, setEditProductId] = useState(null);
+  const [productData, setProductData] = useState({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     fetchProducts();
@@ -25,8 +28,10 @@ const Sidebar = () => {
       const response = await axios.get("http://localhost:3000/products");
       setProducts(response.data);
       setSearchProducts(response.data);
+      setLoading(false);
     } catch (error) {
       console.error("Error fetching products:", error);
+      setLoading(false);
     }
   };
 
@@ -41,43 +46,10 @@ const Sidebar = () => {
     setSearchTerm(event.target.value);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const newProduct = {
-      name,
-      code,
-      brand,
-      price,
-      priceInSale,
-    };
-    try {
-      if (editProductId) {
-        await axios.put(
-          `http://localhost:3000/products/${editProductId}`,
-          newProduct
-        );
-        setEditProductId(null);
-      } else {
-        await axios.post("http://localhost:3000/products", newProduct);
-      }
-      fetchProducts();
-      setName("");
-      setCode("");
-      setBrand("");
-      setPrice("");
-      setPriceInSale("");
-    } catch (error) {
-      console.error("Error saving product:", error);
-    }
-  };
-
   const handleEdit = (product) => {
     setEditProductId(product.id);
-    setName(product.name);
-    setCode(product.code);
-    setBrand(product.brand);
-    setPrice(product.price);
-    setPriceInSale(product.priceInSale);
+    setProductData(product);
+    setIsModalOpen(true);
   };
 
   const handleDelete = async (id) => {
@@ -89,27 +61,56 @@ const Sidebar = () => {
     }
   };
 
+  const handleUpdateProduct = (updatedProduct) => {
+    setProducts((prevProducts) =>
+      prevProducts.map((product) =>
+        product.id === updatedProduct.id ? updatedProduct : product
+      )
+    );
+    setSearchProducts((prevSearchProducts) =>
+      prevSearchProducts.map((product) =>
+        product.id === updatedProduct.id ? updatedProduct : product
+      )
+    );
+    closeModal();
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditProductId(null);
+  };
+
+  const customStyles = {
+    content: {},
+    overlay: {
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+    },
+  };
+
+  if (loading) {
+    return <div className="loader"></div>;
+  }
   return (
     <>
-      <header className="static top-0 left-0 h-[80px] flex items-center ml-[80px]  bg-white w-[95.8%]">
+      <header className="static top-0 left-0 h-[80px] flex items-center ml-[80px] bg-white w-[95.8%]">
         <nav className="justify-between ml-[62px] z-10">
           <h3 className="text-[#212121] text-[18px] font-bold">Товары</h3>
           <div className="flex gap-2 text-[#B5B5C3] mt-1">
             <Link to="/">Главная</Link>
-            <p className="">/</p>
+            <p>/</p>
             <Link to="/">Товары</Link>
           </div>
         </nav>
       </header>
-      <div className="pl-[140px] ">
-        <div className="bg-white max-w-[1180px] shadow-xl  mt-[20px] rounded-[12px]">
+      <div className="pl-[140px]">
+        <div className="bg-white max-w-[1180px] shadow-xl mt-[20px] rounded-[12px]">
           <div className="flex flex-col gap-4 pt-[30px]">
             <div className="flex mb-[31px] justify-between px-6 relative items-center">
               <h2 className="font-bold">Все товары ({products.length})</h2>
               <img
                 src={Search}
                 alt=""
-                className="absolute right-[235px] top-[11px] z-[1000]"
+                className="absolute right-[235px] top-[11px] z-10"
               />
               <input
                 type="text"
@@ -148,10 +149,10 @@ const Sidebar = () => {
                     <p className="w-[161px]">{product.price}</p>
                     <p className="w-[187px]">{product.priceInSale}</p>
                     <button onClick={() => handleEdit(product)}>
-                      <img src={Edit} alt="" className="" />
+                      <img src={Edit} alt="Edit" />
                     </button>
                     <button onClick={() => handleDelete(product.id)}>
-                      <img src={Delete} alt="" className="" />
+                      <img src={Delete} alt="Delete" />
                     </button>
                   </div>
                 ))}
@@ -162,12 +163,42 @@ const Sidebar = () => {
         <div className="flex justify-between my-[30px] max-w-[1180px] items-center">
           <Link
             to="/admin"
-            className="rounded-[6px] bg-[#1BC58D] px-5 py-[10px] font-bold text-white text-sm">
+            className="rounded-[6px] bg-[#1BC58D] px-5 py-[10px] text-sm font-bold text-white ">
             + Новый товар
           </Link>
-          <p className="">© Anymarket 2022</p>
+          <p>© Anymarket 2022</p>
         </div>
       </div>
+
+      <Modal
+        isOpen={isModalOpen}
+        onRequestClose={closeModal}
+        contentLabel="Edit Product Modal"
+        style={{
+          top: "20%",
+          left: "50%",
+          right: "auto",
+          bottom: "auto",
+          marginRight: "-50%",
+          transform: "translate(-50%, -20%)",
+          width: "80%",
+          maxWidth: "600px",
+          zIndex: 40,
+        }}>
+        {editProductId && (
+          <Admin
+            editProductId={editProductId}
+            productData={productData}
+            closeModal={closeModal}
+            onUpdateProduct={handleUpdateProduct} // Pass the callback
+          />
+        )}
+        <button
+          onClick={closeModal}
+          className="ModalCloseButton fixed z-50 top-[641px] rounded-md px-5 py-[10px] bg-[#4d9] font-bold text-white left-[567px]">
+          Закрыть
+        </button>
+      </Modal>
     </>
   );
 };

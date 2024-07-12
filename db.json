@@ -1,13 +1,12 @@
 {
   "products": [
     {
-      "id": "1",
-      "name": "UltraSoft Toothbrush",
+      "name": "UltraSoft q",
       "code": "TB1001",
       "brand": "OralCare",
       "price": 3.99,
       "priceInSale": 2.99,
-      "description": "A toothbrush with ultra-soft bristles for sensitive gums."
+      "id": "1"
     },
     {
       "id": "1029384756",
@@ -89,6 +88,22 @@
       "price": 11.99,
       "priceInSale": 8.99,
       "description": "Calcium supplements to support bone health."
+    },
+    {
+      "id": "1e22",
+      "name": "UltraSoft ",
+      "code": "gY2QQG",
+      "brand": "das",
+      "price": "43dfs",
+      "priceInSale": "qr3we"
+    },
+    {
+      "id": "7dcf",
+      "name": "fd",
+      "code": "dfsz",
+      "brand": "sd",
+      "price": "qefasd",
+      "priceInSale": "q3wafs"
     }
   ]
 }
